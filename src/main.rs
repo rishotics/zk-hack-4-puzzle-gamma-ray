@@ -188,8 +188,25 @@ fn main() {
 
     /* Enter your solution here */
 
-    let nullifier_hack = MNT4BigFr::from(0);
-    let secret_hack = MNT4BigFr::from(0);
+    //Idea: The leaf = x coordinate of the public key. The private key is the secret. nulliefier = hash(secret). SO we can take another point with same x-coordiate and -y cooordinate to get the same leaf.
+
+    //read the leaked secret from the file in MNT6BigFr format and then take a negate of it to get the private key for (x,-y)
+    let leaked_secret2: MNT6BigFr = from_file("./leaked_secret.bin");
+
+    //compute the inverse of the leaked secret as the private key for (x,-y) will be the negate of the private key for (x,y)
+    let inverse_secret_hack = -leaked_secret2;
+
+    let inverse_secret_hack_bigint = inverse_secret_hack.into_bigint();
+
+    //we need to convert the inverse secret to MNT4BigFr format for circuit input
+    let secret_hack = MNT4BigFr::from(inverse_secret_hack_bigint);
+
+    // let t = MNT6BigFr::from(-leaked_secret);
+
+    let nullifier_hack = 
+                <LeafH as CRHScheme>::evaluate(&leaf_crh_params, vec![secret_hack]).unwrap();
+    // let nullifier_hack = MNT4BigFr::from(0);
+
 
     /* End of solution */
 
@@ -207,6 +224,7 @@ fn main() {
     let proof = Groth16::<MNT4_753>::prove(&pk, c2.clone(), rng).unwrap();
 
     assert!(Groth16::<MNT4_753>::verify(&vk, &vec![root, nullifier_hack], &proof).unwrap());
+    println!("Success!");
 }
 
 const PUZZLE_DESCRIPTION: &str = r"
