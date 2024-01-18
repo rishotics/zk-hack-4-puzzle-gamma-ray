@@ -224,7 +224,6 @@ fn main() {
     let proof = Groth16::<MNT4_753>::prove(&pk, c2.clone(), rng).unwrap();
 
     assert!(Groth16::<MNT4_753>::verify(&vk, &vec![root, nullifier_hack], &proof).unwrap());
-    println!("Success!");
 }
 
 const PUZZLE_DESCRIPTION: &str = r"
